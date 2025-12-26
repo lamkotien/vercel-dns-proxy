@@ -1,16 +1,18 @@
-export default async function handler(req, res) {
-  const upstream = "https://t1h4yt0a9c.cloudflare-gateway.com/dns-query"; // THAY LINK CỦA BẠN
-  const ecsSubnet = "14.161.0.0"; // IP VNPT HCM
+export default async function handler(req) {
+  const upstream = "https://t1h4yt0a9c.cloudflare-gateway.com/dns-query"; // LINK CỦA BẠN
+  const ecsSubnet = "14.161.0.0"; 
 
   try {
-    // Tự dựng URL đầy đủ để tránh lỗi Invalid URL
     const protocol = req.headers['x-forwarded-proto'] || 'https';
     const fullUrl = new URL(req.url, `${protocol}://${req.headers.host}`);
     const dnsParam = fullUrl.searchParams.get('dns');
 
-    // Trang chủ để kiểm tra
+    // CẢI TIẾN: Trả về mã 200 kèm Content-Type đúng để ADG không báo lỗi khi Test
     if (req.method === 'GET' && !dnsParam) {
-      return new Response("Vercel DNS Proxy is active!", { status: 200 });
+      return new Response("Vercel DNS Proxy is active!", { 
+        status: 200,
+        headers: { 'Content-Type': 'application/dns-message' } 
+      });
     }
 
     const fetchUrl = dnsParam ? `${upstream}?dns=${dnsParam}` : upstream;
@@ -25,8 +27,7 @@ export default async function handler(req, res) {
       body: req.method === 'POST' ? await req.arrayBuffer() : null
     });
 
-    const data = await response.arrayBuffer();
-    return new Response(data, {
+    return new Response(await response.arrayBuffer(), {
       headers: { 'Content-Type': 'application/dns-message' }
     });
   } catch (err) {
@@ -34,6 +35,4 @@ export default async function handler(req, res) {
   }
 }
 
-export const config = {
-  runtime: 'edge', // Bắt buộc dùng Edge Runtime để chạy nhanh nhất
-};
+export const config = { runtime: 'edge' };
