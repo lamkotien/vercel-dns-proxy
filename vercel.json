@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/dns-query", "dest": "api/dns.js" }
+  ]
+}
