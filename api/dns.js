@@ -1,19 +1,18 @@
 export default async function handler(req) {
-  // Đảm bảo link Cloudflare của bạn KHÔNG có dấu "/" ở cuối
-  // Ví dụ: https://xxx.cloudflare-gateway.com/dns-query
-  const upstream = "https://t1h4yt0a9c.cloudflare-gateway.com/dns-query"; 
-  const ecsSubnet = "14.161.0.0"; 
+  const upstream = "https://t1h4yt0a9c.cloudflare-gateway.com/dns-query"; // Thay link của bạn
+  const ecsSubnet = "14.161.0.0"; // IP VNPT HCM
 
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(req.url, `https://${req.headers.host}`);
     const dnsParam = searchParams.get('dns');
 
-    // Chống treo: Nếu truy cập trực tiếp bằng trình duyệt mà không có tham số dns
-    if (!dnsParam && req.method === 'GET') {
+    if (req.method === 'GET' && !dnsParam) {
       return new Response("Vercel DNS Proxy is active!", { status: 200 });
     }
 
-    const response = await fetch(`${upstream}${dnsParam ? `?dns=${dnsParam}` : ''}`, {
+    const fetchUrl = dnsParam ? `${upstream}?dns=${dnsParam}` : upstream;
+    
+    const response = await fetch(fetchUrl, {
       method: req.method,
       headers: {
         'Accept': 'application/dns-message',
@@ -26,7 +25,7 @@ export default async function handler(req) {
     return new Response(await response.arrayBuffer(), {
       headers: { 'Content-Type': 'application/dns-message' }
     });
-  } catch (e) {
-    return new Response(`Error: ${e.message}`, { status: 500 });
+  } catch (err) {
+    return new Response(`Error: ${err.message}`, { status: 500 });
   }
 }
