@@ -1,5 +1,5 @@
 export default async function handler(req) {
-  const upstream = "https://xxx.cloudflare-gateway.com/dns-query"; // THAY LINK CỦA BẠN
+  const upstream = "https://t1h4yt0a9c.cloudflare-gateway.com/dns-query"; // THAY LINK CỦA BẠN
   const ecsSubnet = "14.161.0.0"; // IP VNPT HCM (hoặc IP của bạn)
 
   const url = new URL(req.url);
